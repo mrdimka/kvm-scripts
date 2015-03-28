@@ -31,6 +31,8 @@ localnet        $NETWORK
 EOF
 
 echo "$new_kvm_name" > "$kvm_mnt_dir"/etc/hostname
+rm -rf "$kvm_mnt_dir"/etc/ssh/ssh_host*
+chroot $kvm_mnt_dir /bin/bash -c "dpkg-reconfigure openssh-server"
 
 
 }
