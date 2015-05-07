@@ -89,7 +89,7 @@ if [[ -f "$kvm_image_dir"/"$new_kvm_name".img || -f "$kvm_xml_dir"/"$new_kvm_nam
 fi
 
 
-if [[ "$template_kvm" == "centos5" || "$template_kvm" == "ubuntu12" || "$template_kvm" == "ubuntu14" ]]
+if [[ "$template_kvm" == "centos5" || "$template_kvm" == "centos6" || "$template_kvm" == "centos7" || "$template_kvm" == "ubuntu12" || "$template_kvm" == "ubuntu14" ]]
  then 
   echo "Known template... continuing"
 
@@ -119,10 +119,18 @@ if [[ "$template_kvm" == "centos5" || "$template_kvm" == "ubuntu12" || "$templat
   mount /dev/mapper/loop0p1 $kvm_mnt_dir
 
    case $template_kvm in
-   		centos5) 
+   	centos5) 
 			echo "Configuring network for centos 5 template"
 			centosNetwork
 			;;
+    centos6) 
+      echo "Configuring network for centos 6 template"
+      centosNetwork
+      ;;  
+    centos7) 
+      echo "Configuring network for centos 7 template"
+      centosNetwork
+      ;;
 		ubuntu12) 
 			echo "Configuring network for ubuntu 12 template"
 			ubuntuNetwork
@@ -137,6 +145,7 @@ if [[ "$template_kvm" == "centos5" || "$template_kvm" == "ubuntu12" || "$templat
   umount $kvm_mnt_dir
   kpartx -d "$kvm_image_dir"/"$new_kvm_name".img
   echo "Script finished..."
+  echo "DON'T forget to change the root password..."
   exit 0
 
  else
