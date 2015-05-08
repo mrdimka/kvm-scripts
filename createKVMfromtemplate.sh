@@ -57,6 +57,8 @@ HOSTNAME=$new_kvm_name
 GATEWAY=$GATEWAY
 EOF
 
+echo "$new_kvm_name" > "$kvm_mnt_dir"/etc/hostname
+
 }
 
 
