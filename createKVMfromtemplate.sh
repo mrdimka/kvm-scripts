@@ -37,6 +37,80 @@ chroot $kvm_mnt_dir /bin/bash -c "dpkg-reconfigure openssh-server"
 
 }
 
+function ubuntu16Network {
+
+cat <<EOF > "$kvm_mnt_dir"/etc/network/interfaces
+
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+auto ens3
+iface ens3 inet static
+        address $IPaddress
+        netmask $NETMASK
+        network $NETWORK
+        broadcast $BROADCAST
+        gateway $GATEWAY
+        # dns-* options are implemented by the resolvconf package, if installed
+        dns-nameservers 8.8.8.8
+EOF
+
+cat <<EOF > "$kvm_mnt_dir"/etc/networks
+default         0.0.0.0
+loopback        127.0.0.0
+link-local      169.254.0.0
+localnet        $NETWORK
+EOF
+
+echo "$new_kvm_name" > "$kvm_mnt_dir"/etc/hostname
+rm -rf "$kvm_mnt_dir"/etc/ssh/ssh_host*
+chroot $kvm_mnt_dir /bin/bash -c "dpkg-reconfigure openssh-server"
+
+
+}
+
+function ubuntu18Network {
+echo "ubuntu 18 my address"
+
+echo $IPaddress > "$kvm_mnt_dir"/root/myaddr
+
+cat <<EOF > "$kvm_mnt_dir"/etc/netplan/01-netcfg.yaml
+# This file describes the network interfaces available on your system
+# For more information, see netplan(5).
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    ens3:
+      addresses: [ $IPaddress/25 ]
+      gateway4: $GATEWAY
+      nameservers:
+          addresses:
+              - "8.8.8.8"
+EOF
+
+
+cat <<EOF > "$kvm_mnt_dir"/etc/networks
+default         0.0.0.0
+loopback        127.0.0.0
+link-local      169.254.0.0
+localnet        $NETWORK
+EOF
+
+echo "$new_kvm_name" > "$kvm_mnt_dir"/etc/hostname
+rm -rf "$kvm_mnt_dir"/etc/ssh/ssh_host*
+#chroot $kvm_mnt_dir /bin/bash -c "export PATH="/bin:$PATH" && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure openssh-server"
+chroot $kvm_mnt_dir /bin/bash -c "export PATH="/bin:$PATH" && dpkg-reconfigure openssh-server"
+
+
+}
 
 function centosNetwork {
 
@@ -91,7 +165,7 @@ if [[ -f "$kvm_image_dir"/"$new_kvm_name".img || -f "$kvm_xml_dir"/"$new_kvm_nam
 fi
 
 
-if [[ "$template_kvm" == "centos5" || "$template_kvm" == "centos6" || "$template_kvm" == "centos7" || "$template_kvm" == "ubuntu12" || "$template_kvm" == "ubuntu14" ]]
+if [[ "$template_kvm" == "centos5" || "$template_kvm" == "centos6" || "$template_kvm" == "centos7" || "$template_kvm" == "ubuntu12" || "$template_kvm" == "ubuntu14" || "$template_kvm" == "ubuntu16"  || "$template_kvm" == "ubuntu18" ]]
  then 
   echo "Known template... continuing"
 
@@ -140,6 +214,14 @@ if [[ "$template_kvm" == "centos5" || "$template_kvm" == "centos6" || "$template
 		ubuntu14) 
 			echo "Configuring network for ubuntu 14 template"
 			ubuntuNetwork
+			;;
+		ubuntu16) 
+			echo "Configuring network for ubuntu 16 template"
+			ubuntu16Network
+			;;
+		ubuntu18) 
+			echo "Configuring network for ubuntu 18 template"
+			ubuntu18Network
 			;;
 	esac
 
