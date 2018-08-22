@@ -223,8 +223,18 @@ if [[ "$template_kvm" == "centos5" || "$template_kvm" == "centos6" || "$template
 			echo "Configuring network for ubuntu 18 template"
 			ubuntu18Network
 			;;
-	esac
+	 esac
 
+   if [ -z "$ssh_keys" ]
+    then
+    echo "no ssh keys found to add"
+   else
+    echo "Adding ssh keys found"
+    mkdir "$kvm_mnt_dir"/root/.ssh/
+    # double quotes needed on ssh_keys variable otherwise new lines won't be added when adding multiple ssh keys
+    echo "$ssh_keys" > "$kvm_mnt_dir"/root/.ssh/authorized_keys
+   fi
+  
   echo "Umounting image file"
   umount $kvm_mnt_dir
   kpartx -d "$kvm_image_dir"/"$new_kvm_name".img
